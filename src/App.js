@@ -3,32 +3,134 @@ import { useEffect, useState } from 'react';
 export default () => {
 
   const [cars, setCars] = useState([]);//Pega a lista de carros
+  const [loading, setLoading] = useState(false);
+  const [year, setYear] = useState('');
 
-  const getCars = () => {
-    fetch("https://api.b7web.com.br/carros/api/carros")//Faz a requisição
-    .then(function(result) {//Pega resultado
-      return result.json();//transforma em json
-    })
-    .then(function(json){//Pega o json e mostra
-      if(json.error === '') {// Se não ocorreu nenhum erro
-        setCars( json.cars );// Pego a lista e jogou dentro da state
-      } else {
-        alert( json.error );
-      }
-    });
+  const [formType, setFormType] = useState('login'); // login | register
+  const [nameField, setNameField] = useState('');
+  const [emailField, setEmailField] = useState('');
+  const [passwordField, setPasswordField] = useState('');
+
+  const getCars = async () => {
+    setCars([]);// Limpa a lista de carros
+    setLoading(true);// Seta loading como true antes da requisicao
+
+    let result = await fetch(`https://api.b7web.com.br/carros/api/carros?ano=${year}`);
+    let json = await result.json();// armazena resultado em json
+
+    setLoading(false);// Tira loading
+
+    if(json.error === '') {// Se não ocorreu nenhum erro
+      setCars( json.cars );// Pego a lista e jogou dentro da state
+    } else {
+      alert( json.error );
+    }
   };
+
+  // Para pegar carros ano escolhido no select  
+  const handleYearChange = (e) => {
+    setYear( e.target.value );
+  }
+  // Fazer login
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+
+    let url = `https://api.b7web.com.br/carros/api/auth/${formType}`;
+
+    let body = {
+      email: emailField,
+      password: passwordField
+    };
+
+    if(formType === 'register') {
+      body.name = nameField;
+    }
+
+    let result = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+    let json = await result.json();
+
+    if(json.error != '') {
+      alert(json.error);
+    }
+    console.log("RESULT", json);
+  }
 
   useEffect(()=>{
     getCars();
-  }, []);
+  }, [year]);
 
   return (
     <div>
+      <label>
+        <input defaultChecked type="radio" name="formtype" onClick={()=>setFormType('login')} />
+        Login
+      </label><br/>
+
+      <label>
+        <input type="radio" name="formtype" onClick={()=>setFormType('register')} />
+        Cadastro
+      </label>
+
+      {formType === 'login' &&
+        <h2>Faça Login</h2>
+      }
+      {formType === 'register' &&
+        <h2>Faça o Cadastro</h2>
+      }
+
+      <form onSubmit={handleLoginSubmit}>
+
+        {formType === 'register' &&
+          <>
+            <label>
+              Nome:
+              <input type="text" value={nameField} onChange={e=>setNameField(e.target.value)} />
+            </label><br/>
+          </>
+        }
+        <label>
+          E-mail:
+          <input type="email" value={emailField} onChange={e=>setEmailField(e.target.value)} />
+        </label><br/>
+        <label>
+          Senha:
+          <input type="password" value={passwordField} onChange={e=>setPasswordField(e.target.value)} />
+        </label><br/>
+
+        <input type="submit" value="Enviar" />
+      </form>
+      <hr/>
+
       <h1>Lista de Carros</h1>
+
+      <select onChange={handleYearChange}>
+        <option></option>
+        <option>2021</option>
+        <option>2020</option>
+        <option>2019</option>
+        <option>2018</option>
+        <option>2017</option>
+        <option>2016</option>
+        <option>2015</option>
+      </select>
 
       <button onClick={getCars}>Atualizar Lista</button>
 
       <hr/>
+
+      {loading === true &&
+        <h2>Caregando os carros...</h2>
+      }
+
+      {cars.length === 0 && loading === false &&
+        <h2>Nenhum carro encontrado!</h2>
+      }
 
       {cars.map((item, index)=>(
         <div key={index}>
