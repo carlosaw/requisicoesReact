@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 
 export default () => {
 
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const[userName, setUserName] = useState(localStorage.getItem('username'));
+
   const [cars, setCars] = useState([]);//Pega a lista de carros
   const [loading, setLoading] = useState(false);
   const [year, setYear] = useState('');
@@ -37,28 +40,39 @@ export default () => {
 
     let url = `https://api.b7web.com.br/carros/api/auth/${formType}`;
 
-    let body = {
+    let body = {// Corpo do form
       email: emailField,
       password: passwordField
     };
 
-    if(formType === 'register') {
+    if(formType === 'register') {// form register adiciona o nome
       body.name = nameField;
     }
 
-    let result = await fetch(url, {
+    let result = await fetch(url, {// Pega resultado
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(body)
     });
-    let json = await result.json();
+    let json = await result.json();// Espera o resultado
 
     if(json.error != '') {
       alert(json.error);
+    } else {
+      localStorage.setItem('token', json.token);
+      localStorage.setItem('username', json.user.name);
+      setToken(json.token);
+      setUserName(json.user.name);
     }
-    console.log("RESULT", json);
+  }
+
+  const handleLogout = () => {
+    setToken('');
+    setUserName('');
+    localStorage.setItem('token', '');
+    localStorage.setItem('username', '');
   }
 
   useEffect(()=>{
@@ -77,9 +91,18 @@ export default () => {
         Cadastro
       </label>
 
-      {formType === 'login' &&
+      {formType === 'login' && !token &&
         <h2>Faça Login</h2>
       }
+      {token &&
+      <>
+        <div>
+          <h3>Olá, {userName}</h3>
+        </div>
+        <button onClick={handleLogout}>Sair</button>
+      </>
+      }
+
       {formType === 'register' &&
         <h2>Faça o Cadastro</h2>
       }
@@ -94,6 +117,7 @@ export default () => {
             </label><br/>
           </>
         }
+        
         <label>
           E-mail:
           <input type="email" value={emailField} onChange={e=>setEmailField(e.target.value)} />
