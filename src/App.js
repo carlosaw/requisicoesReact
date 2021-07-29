@@ -1,9 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export default () => {
 
+  const photoField = useRef();
+
   const [token, setToken] = useState(localStorage.getItem('token'));
-  const[userName, setUserName] = useState(localStorage.getItem('username'));
+  const [userName, setUserName] = useState(localStorage.getItem('username'));
+
+  const [newCarBrand, setNewCarBrand] = useState('');// Marca
+  const [newCarModel, setNewCarModel] = useState('');// Modelo
+  const [newCarYear, setNewCarYear] = useState('');// Ano
+  const [newCarPrice, setNewCarPrice] = useState('');// Preço
 
   const [cars, setCars] = useState([]);//Pega a lista de carros
   const [loading, setLoading] = useState(false);
@@ -75,60 +82,97 @@ export default () => {
     localStorage.setItem('username', '');
   }
 
+    // Upload de fotos
+  const handleAddCarSubmit =(e) => {// Adiciona Carro
+    e.preventDefault();
+
+
+  }
+
   useEffect(()=>{
     getCars();
   }, [year]);
 
   return (
+    
     <div>
-      <label>
-        <input defaultChecked type="radio" name="formtype" onClick={()=>setFormType('login')} />
-        Login
-      </label><br/>
+      {!token &&
+        <>
+          <label>
+            <input defaultChecked type="radio" name="formtype" onClick={()=>setFormType('login')} />
+            Login
+          </label><br/>
 
-      <label>
-        <input type="radio" name="formtype" onClick={()=>setFormType('register')} />
-        Cadastro
-      </label>
-
-      {formType === 'login' && !token &&
-        <h2>Faça Login</h2>
+          <label>
+            <input type="radio" name="formtype" onClick={()=>setFormType('register')} />
+            Cadastro
+          </label>
+        
+          {formType === 'login' &&
+            <h2>Faça Login</h2>
+          }
+        </>
       }
+
+      {formType === 'register' && !token &&
+        <h2>Faça o Cadastro</h2>
+      }
+
       {token &&
       <>
         <div>
           <h3>Olá, {userName}</h3>
         </div>
         <button onClick={handleLogout}>Sair</button>
+
+        <form onClick={handleAddCarSubmit}>
+          <h4>Adicionar Carro</h4>
+          <label>
+            Marca:
+            <input type="text" value={newCarBrand} onChange={e=>setNewCarBrand(e.target.value)} />
+          </label><br/>
+          <label>
+            Modelo:
+            <input type="text"  value={newCarModel} onChange={e=>setNewCarModel(e.target.value)}/>
+          </label>
+          <label><br/>
+            Ano:
+            <input type="text" value={newCarYear} onChange={e=>setNewCarYear(e.target.value)} />
+          </label><br/>
+          <label>
+            Preço:
+            <input type="text" value={newCarPrice} onChange={e=>setNewCarPrice(e.target.value)} />
+          </label><br/>
+          <label>
+            Foto:
+            <input ref={photoField} type="file" />
+          </label><br/>
+          <input type="submit" value="Enviar" />
+        </form>
       </>
       }
 
-      {formType === 'register' &&
-        <h2>Faça o Cadastro</h2>
-      }
-
-      <form onSubmit={handleLoginSubmit}>
-
-        {formType === 'register' &&
-          <>
+      {!token &&
+        <form onSubmit={handleLoginSubmit}>
+          {formType === 'register' &&
+            <>
+              <label>
+                Nome:
+                <input type="text" value={nameField} onChange={e=>setNameField(e.target.value)} />
+              </label><br/>
+            </>
+          }
             <label>
-              Nome:
-              <input type="text" value={nameField} onChange={e=>setNameField(e.target.value)} />
+              E-mail:
+              <input type="email" value={emailField} onChange={e=>setEmailField(e.target.value)} />
             </label><br/>
-          </>
-        }
-        
-        <label>
-          E-mail:
-          <input type="email" value={emailField} onChange={e=>setEmailField(e.target.value)} />
-        </label><br/>
-        <label>
-          Senha:
-          <input type="password" value={passwordField} onChange={e=>setPasswordField(e.target.value)} />
-        </label><br/>
-
-        <input type="submit" value="Enviar" />
-      </form>
+            <label>
+              Senha:
+              <input type="password" value={passwordField} onChange={e=>setPasswordField(e.target.value)} />
+            </label><br/>
+            <input type="submit" value="Enviar" />
+        </form>
+      }
       <hr/>
 
       <h1>Lista de Carros</h1>
