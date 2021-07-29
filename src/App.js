@@ -8,7 +8,7 @@ export default () => {
   const [userName, setUserName] = useState(localStorage.getItem('username'));
 
   const [newCarBrand, setNewCarBrand] = useState('');// Marca
-  const [newCarModel, setNewCarModel] = useState('');// Modelo
+  const [newCarName, setNewCarName] = useState('');// Modelo
   const [newCarYear, setNewCarYear] = useState('');// Ano
   const [newCarPrice, setNewCarPrice] = useState('');// Preço
 
@@ -83,10 +83,42 @@ export default () => {
   }
 
     // Upload de fotos
-  const handleAddCarSubmit =(e) => {// Adiciona Carro
+  const handleAddCarSubmit = async (e) => {// Adiciona Carro
     e.preventDefault();
 
+    // Montar requisição
+    let body = new FormData();
+    // Pega informações para enviar
+    body.append('brand', newCarBrand);
+    body.append('name', newCarName);
+    body.append('year', newCarYear);
+    body.append('price', newCarPrice);
+    // Verifica se usuario enviou foto
+    if(photoField.current.files.length > 0) {
+      body.append('photo', photoField.current.files[0]);
+    }
 
+    let result = await fetch('https://api.b7web.com.br/carros/api/carro', {
+      method: 'POST',
+      headers:{
+        'Authorization': `Bearer ${token}`
+      },
+      body
+    });
+    // Pega o resultado
+    let json = await result.json();
+
+    if(json.error !== '') {
+      alert("Ocorreu um erro!");
+      console.log(json.error);
+    } else {
+      alert("Carro adicionado com sucesso!");
+      getCars();// Recarrega os carros
+      setNewCarBrand('');// Limpa os campos
+      setNewCarName('');
+      setNewCarYear('');
+      setNewCarPrice('');
+    }
   }
 
   useEffect(()=>{
@@ -125,26 +157,26 @@ export default () => {
         </div>
         <button onClick={handleLogout}>Sair</button>
 
-        <form onClick={handleAddCarSubmit}>
+        <form onSubmit={handleAddCarSubmit}>
           <h4>Adicionar Carro</h4>
           <label>
-            Marca:
+            Marca do Carro:
             <input type="text" value={newCarBrand} onChange={e=>setNewCarBrand(e.target.value)} />
           </label><br/>
           <label>
-            Modelo:
-            <input type="text"  value={newCarModel} onChange={e=>setNewCarModel(e.target.value)}/>
+            Nome do Carro:
+            <input type="text"  value={newCarName} onChange={e=>setNewCarName(e.target.value)}/>
           </label>
           <label><br/>
-            Ano:
+            Ano do Carro:
             <input type="text" value={newCarYear} onChange={e=>setNewCarYear(e.target.value)} />
           </label><br/>
           <label>
-            Preço:
+            Preço do Carro:
             <input type="text" value={newCarPrice} onChange={e=>setNewCarPrice(e.target.value)} />
           </label><br/>
           <label>
-            Foto:
+            Foto do Carro:
             <input ref={photoField} type="file" />
           </label><br/>
           <input type="submit" value="Enviar" />
@@ -186,6 +218,7 @@ export default () => {
         <option>2017</option>
         <option>2016</option>
         <option>2015</option>
+        <option>1977</option>
       </select>
 
       <button onClick={getCars}>Atualizar Lista</button>
