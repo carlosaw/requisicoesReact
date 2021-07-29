@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import api from './api';
 
 export default () => {
 
@@ -25,9 +26,11 @@ export default () => {
     setCars([]);// Limpa a lista de carros
     setLoading(true);// Seta loading como true antes da requisicao
 
+    let { data: json } = await api.get(`/carros?ano=${year}`);
+    /*
     let result = await fetch(`https://api.b7web.com.br/carros/api/carros?ano=${year}`);
     let json = await result.json();// armazena resultado em json
-
+    */
     setLoading(false);// Tira loading
 
     if(json.error === '') {// Se não ocorreu nenhum erro
@@ -45,17 +48,22 @@ export default () => {
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
 
-    let url = `https://api.b7web.com.br/carros/api/auth/${formType}`;
-
-    let body = {// Corpo do form
+    let { data: json } = await api.post('/auth/login', {
       email: emailField,
       password: passwordField
-    };
+    });
 
-    if(formType === 'register') {// form register adiciona o nome
+    /*let url = `https://api.b7web.com.br/carros/api/auth/${formType}`;*/
+
+    /*let body = {// Corpo do form
+      email: emailField,
+      password: passwordField
+    };*/
+
+    /*if(formType === 'register') {// form register adiciona o nome
       body.name = nameField;
-    }
-
+    }*/
+/*
     let result = await fetch(url, {// Pega resultado
       method: 'POST',
       headers: {
@@ -64,7 +72,7 @@ export default () => {
       body: JSON.stringify(body)
     });
     let json = await result.json();// Espera o resultado
-
+*/
     if(json.error != '') {
       alert(json.error);
     } else {
